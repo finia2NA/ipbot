@@ -1,6 +1,6 @@
 import asyncio
 import json
-from time import sleep
+from asyncio import sleep
 import os
 
 import discord
@@ -63,10 +63,10 @@ async def eventloop():
 
       print("ip changed to " + ipResult[1] + ",   messages have been sent")
 
-    # I don't sleep the entire 120s in one piece so I can respond to a keyboard interupt.
-    # TODO find a better way to do this
-    for _ in range(60):
-      sleep(2)
+    else:
+      print("ip has not changed, is", ipResult[1])
+
+    await sleep(120)
   
   
 
