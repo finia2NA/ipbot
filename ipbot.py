@@ -1,6 +1,7 @@
 import asyncio
 import json
 from time import sleep
+import os
 
 import discord
 import miniupnpc
@@ -14,7 +15,7 @@ def storeLastIP(lastip):
 
 def getLastIP():
   with open(".lastip", "r") as f:
-    re = f.readlines()
+    re = f.read()
     f.close
   return re
 
@@ -33,13 +34,14 @@ def ipChanged():
     u.discover()
     u.selectigd() 
     currentip = u.externalipaddress()
+    # print("lastIP:", getLastIP(), "currentIP:", currentip)
     if getLastIP() != currentip:
       return (True, currentip)
     else:
       return (False, currentip)
   except Exception:
     print("ip lookup was unsuccessfull.")
-    return (False, getLastIP)
+    return (False, getLastIP())
 
   
 
@@ -58,8 +60,13 @@ async def eventloop():
       for identifier in channels:
         channel = client.get_channel(identifier)
         await channel.send('New IP: `' + ipResult[1] + '`')
-    print("ip changed to " + ipResult[1] + ",   messages have been sent")
-    sleep(120)
+
+      print("ip changed to " + ipResult[1] + ",   messages have been sent")
+
+    # I don't sleep the entire 120s in one piece so I can respond to a keyboard interupt.
+    # TODO find a better way to do this
+    for _ in range(60):
+      sleep(2)
   
   
 
@@ -67,8 +74,9 @@ TOKEN = getConfig()["token"]
 print("ipbot: starting")
 
 # create .lastip if not exists
-with open(".lastip", "w+") as f:
-  f.close()
+if not os.path.exists(".lastip"):
+  with open(".lastip", "w+") as f:
+    f.close()
 
 client.loop.create_task(eventloop())
 
